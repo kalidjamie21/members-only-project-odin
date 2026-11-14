@@ -1,0 +1,113 @@
+const db = require('../models/queries');
+const { validationResult } = require('express-validator');
+const bcrypt = require("bcrypt"); // the library that allows for hashing passwords to save them securely
+
+async function getAllMessagesIndex(req, res, next) {
+  try {
+    const messages = await db.getAllMessages();
+    const isMember = Boolean(req.user?.is_member || req.user?.is_admin);
+    const successMessage = req.session.successMessage;
+    delete req.session.successMessage;
+
+    res.render("index", {
+      messages,
+      isMember,
+      currentUser: req.user,
+      successMessage,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+function signUpFormGet(req, res) {
+  res.render("sign-up-form")
+};
+
+// Validate form
+// → Show errors if invalid
+// → Hash password
+// → Save user
+// → Log user in automatically
+// → Redirect to homepage
+//This basically checks data validity after POST action before database insertion
+async function signUpFormPost(req, res, next) {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return res.status(400).render("sign-up-form", {
+      errors: errors.array(),
+      formData: {
+        first_name: req.body.first_name,
+        last_name: req.body.last_name,
+        email: req.body.email,
+      },
+    });
+  }
+
+  try {
+    const { first_name, last_name, email, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await db.insertNewUser(first_name, last_name, email, hashedPassword);
+
+    req.login(newUser, (loginError) => {
+      if (loginError) return next(loginError);
+      res.redirect("/");
+    });
+  } catch (error) {
+    if (error.code === "23505") {
+      return res.status(409).render("sign-up-form", {
+        errors: [{ msg: "An account with that email already exists." }],
+        formData: {
+          first_name: req.body.first_name,
+          last_name: req.body.last_name,
+          email: req.body.email,
+        },
+      });
+    }
+    next(error);
+  }
+}
+
+function logOut(req, res, next) {
+  req.logout((err) => {
+    if (err) {
+      return next(err);
+    }
+    res.redirect("/");
+  });
+};
+
+function loginFormGet(req, res) {
+  res.render("login-form");
+}
+
+function newMessageFormGet(req, res) {
+  res.render("write-message-form");
+}
+
+async function newMessageFormPost(req, res, next) {
+  try {
+    const { title, story } = req.body;
+
+    await db.insertNewMessage(title, story, req.user.id);
+
+    req.session.successMessage = "Your whisper has been pinned to the well!";
+    req.session.save((sessionError) => {
+      if (sessionError) return next(sessionError);
+      res.redirect("/");
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+module.exports = {
+  getAllMessagesIndex,
+  signUpFormGet,
+  signUpFormPost,
+  logOut,
+  loginFormGet,
+  newMessageFormGet,
+  newMessageFormPost
+}

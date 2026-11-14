@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leave a Whisper</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="min-h-screen bg-cream font-sans text-ink">
+  <header class="border-b-2 border-ink/10 bg-cream/95">
+    <nav class="mx-auto flex max-w-6xl items-center justify-between px-5 py-5 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="Whisperwell home">
+        <span class="grid h-10 w-10 rotate-3 place-items-center rounded-xl bg-ink text-xl text-mint shadow-[4px_4px_0_#ff6b5f]">✦</span>
+        <span class="text-xl font-black tracking-tight">Whisperwell</span>
+      </a>
+      <a href="/" class="rounded-full border-2 border-ink px-4 py-2 text-sm font-bold transition hover:bg-ink hover:text-white">Back to the well</a>
+    </nav>
+  </header>
+
+  <main class="mx-auto max-w-3xl px-5 py-12 lg:px-8 lg:py-20">
+    <section class="mb-10 text-center">
+      <p class="mb-5 inline-flex rounded-full bg-mint px-4 py-2 text-xs font-black uppercase tracking-[0.2em]">The floor is yours</p>
+      <h1 class="font-display text-5xl leading-tight sm:text-6xl">Leave a <span class="relative inline-block text-coral">whisper.<img src="/images/whisperwell-owl-smile.png" alt="" aria-hidden="true" class="absolute -right-14 -top-8 h-20 w-20 object-contain transition duration-300 hover:-rotate-12 hover:scale-110"></span></h1>
+      <p class="mx-auto mt-5 max-w-xl text-lg leading-8 text-ink/70">Share a thought, a story, or a small observation. Your name stays tucked away from public eyes.</p>
+    </section>
+
+    <section class="rounded-3xl border-2 border-ink/10 bg-white p-6 shadow-[9px_9px_0_#e6ddff] sm:p-10">
+      <% if (typeof errors !== 'undefined' && errors.length) { %>
+        <div class="mb-6 rounded-2xl border-2 border-coral/40 bg-coral/10 p-4 text-sm" role="alert" aria-live="polite">
+          <p class="font-bold">Please check the following:</p>
+          <ul class="mt-2 list-disc space-y-1 pl-5">
+            <% errors.forEach((error) => { %>
+              <li><%= error.msg || error %></li>
+            <% }) %>
+          </ul>
+        </div>
+      <% } %>
+
+      <form action="/new-message" method="POST" class="space-y-6">
+        <div>
+          <label for="title" class="mb-2 block text-sm font-bold">Give it a title</label>
+          <input id="title" name="title" type="text" required maxlength="200" value="<%= typeof formData !== 'undefined' ? (formData.title || '') : '' %>" class="w-full rounded-xl border-2 border-ink/15 bg-cream px-4 py-3 text-lg outline-none transition placeholder:text-ink/35 focus:border-coral focus:ring-4 focus:ring-coral/10" placeholder="A thought worth sharing">
+        </div>
+
+        <div>
+          <div class="mb-2 flex items-center justify-between gap-4">
+            <label for="story" class="block text-sm font-bold">Write your message</label>
+            <span class="text-xs font-bold text-ink/45">Keep it kind and curious</span>
+          </div>
+          <textarea id="story" name="story" rows="8" required maxlength="5000" class="w-full resize-y rounded-xl border-2 border-ink/15 bg-cream px-4 py-3 leading-7 outline-none transition placeholder:text-ink/35 focus:border-coral focus:ring-4 focus:ring-coral/10" placeholder="What is on your mind?"><%= typeof formData !== 'undefined' ? (formData.story || '') : '' %></textarea>
+        </div>
+
+        <div class="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p class="text-sm text-ink/55">Your name and timestamp are visible to members.</p>
+          <button type="submit" class="rounded-xl bg-coral px-6 py-3.5 font-black text-white shadow-[5px_5px_0_#20243a] transition hover:translate-x-1 hover:translate-y-1 hover:shadow-none">Post the whisper <span class="ml-1">↗</span></button>
+        </div>
+      </form>
+    </section>
+  </main>
+</body>
+</html>
