@@ -32,7 +32,7 @@
         <span><%= successMessage %></span>
       </div>
     <% } %>
-    <section class="grid items-end gap-10 lg:grid-cols-[1.05fr_0.95fr]">
+    <section class="grid items-start gap-10 lg:grid-cols-[1.05fr_0.95fr]">
       <div>
         <% if (currentUser) { %>
           <p class="mb-5 inline-flex rounded-full bg-coral px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-white">The well is listening</p>
@@ -49,8 +49,13 @@
           <a href="/sign-up" class="mt-8 inline-flex rounded-full bg-ink px-6 py-3 font-bold text-white shadow-[5px_5px_0_#ff6b5f] transition hover:translate-x-1 hover:translate-y-1 hover:shadow-none">Join the conversation <span class="ml-2">↗</span></a>
         <% } %>
       </div>
-      <div class="relative flex min-h-64 items-start justify-center">
-        <img src="/images/whisperwell-owl.png" alt="A friendly owl whispering a secret" class="h-96 w-96 max-w-full object-contain transition duration-500 hover:-rotate-3 hover:scale-105">
+      <div class="relative flex min-h-64 flex-col items-center justify-start">
+        <% if (currentUser && !currentUser.is_member && !currentUser.is_admin) { %>
+          <a href="/join" class="group z-20 mb-2 -mt-2 inline-flex items-center rounded-3xl bg-mint px-10 py-6 text-center text-2xl font-black text-ink shadow-[8px_8px_0_#20243a] transition duration-300 hover:-translate-y-1 hover:rotate-2 hover:shadow-[11px_11px_0_#ff6b5f]">
+            <span>Crack the Clubhouse Code</span>
+          </a>
+        <% } %>
+        <img src="/images/whisperwell-owl.png" alt="A friendly owl whispering a secret" class="mt-10 h-96 w-96 max-w-full object-contain transition duration-500 hover:-rotate-3 hover:scale-105">
       </div>
     </section>
 
@@ -75,6 +80,11 @@
                 <% if (isMember) { %><span class="text-coral">— <%= message.first_name %> <%= message.last_name %></span><% } else { %><span class="text-ink/40">— identity tucked away</span><% } %>
                 <% if (isMember) { %><span class="text-ink/40"><%= new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) %></span><% } %>
               </div>
+              <% if (currentUser?.is_admin === true) { %>
+                <form action="/messages/<%= message.id %>/delete" method="POST" class="mt-5">
+                  <button type="submit" class="w-full rounded-xl border-2 border-red-200 bg-red-50 px-4 py-2 text-sm font-black text-red-700 transition hover:border-red-700 hover:bg-red-700 hover:text-white">Delete this whisper</button>
+                </form>
+              <% } %>
             </article>
           <% }) %>
         </div>

@@ -34,6 +34,15 @@ function ensureAuthenticated(req, res, next) {
   }
   res.redirect("/log-in");
 }
+
+function ensureAdmin(req, res, next) {
+  if (req.isAuthenticated() && req.user?.is_admin === true) {
+    return next();
+  }
+
+  res.status(403).send("Admin access required");
+}
 module.exports = {
-  ensureAuthenticated
+  ensureAuthenticated,
+  ensureAdmin
 };

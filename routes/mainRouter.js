@@ -2,7 +2,7 @@ const { Router } = require('express');
 const { body, validationResult } = require('express-validator');
 const mainController = require('../controllers/mainController');
 const passport = require("passport");
-const { ensureAuthenticated } = require("../config/passport");
+const { ensureAuthenticated, ensureAdmin } = require("../config/passport");
 
 const router = Router();
 
@@ -65,5 +65,19 @@ router.get("/new-message", ensureAuthenticated, mainController.newMessageFormGet
 
 // POST / submit new message action
 router.post("/new-message", ensureAuthenticated, mainController.newMessageFormPost);
+
+// GET / enter exclusive private club form view
+router.get("/join", ensureAuthenticated, mainController.joinClubFormGet);
+
+// POST / passcode submit action
+router.post(
+  "/join",
+  ensureAuthenticated,
+  body("passcode").trim().notEmpty().withMessage("Enter the club passcode."),
+  mainController.joinClubFormPost,
+);
+
+// POST / delete message by admin
+router.post("/messages/:id/delete", ensureAuthenticated, ensureAdmin, mainController.deleteMessage);
 
 module.exports = router;

@@ -68,10 +68,34 @@ async function insertNewMessage(title, story, userId) {
   return rows[0];
 }
 
+async function makeUserMember(userId) {
+  const { rows } = await pool.query(
+    `
+      UPDATE users
+      SET is_member = TRUE
+      WHERE id = $1
+      RETURNING id, first_name, last_name, email, is_member, is_admin;
+    `,
+    [userId]
+  );
+
+  return rows[0];
+}
+
+async function deleteMessageFromDB(messageId) {
+  const { rows } = await pool.query(
+    `DELETE FROM messages WHERE id = $1 RETURNING id;`,
+    [messageId]
+  );
+  return rows[0];
+}
+
 module.exports = {
     getUserByUsername,
     getUserById,
     getAllMessages,
     insertNewUser,
-    insertNewMessage
+    insertNewMessage,
+    makeUserMember,
+    deleteMessageFromDB
 };

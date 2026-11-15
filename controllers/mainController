@@ -1,3 +1,4 @@
+require("dotenv").config();
 const db = require('../models/queries');
 const { validationResult } = require('express-validator');
 const bcrypt = require("bcrypt"); // the library that allows for hashing passwords to save them securely
@@ -102,6 +103,57 @@ async function newMessageFormPost(req, res, next) {
   }
 }
 
+function joinClubFormGet(req, res) {
+  res.render("join-private-club");
+}
+
+async function joinClubFormPost(req, res, next) {
+  const userPassCode = req.body.passcode?.trim();
+
+  if (userPassCode !== process.env.PRIVATE_CLUB_PASSCODE) {
+    return res.status(400).render("join-private-club", {
+      passcodeError: "Oops! Wrong code, mate! Try again.",
+    });
+  }
+
+  try {
+    const updatedUser = await db.makeUserMember(req.user.id);
+    req.login(updatedUser, (loginError) => {
+      if (loginError) return next(loginError);
+
+      req.session.successMessage = "You’re in! Member names are now visible to you.";
+      req.session.save((sessionError) => {
+        if (sessionError) return next(sessionError);
+        res.redirect("/");
+      });
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// delete message by admin
+async function deleteMessage(req, res, next) {
+  const id = Number(req.params.id);
+
+  if (!Number.isInteger(id) || id < 1) {
+    return res.status(404).send("Invalid message ID");
+  }
+
+  try {
+    const deletedMessage = await db.deleteMessageFromDB(id);
+    if (!deletedMessage) return res.status(404).send("Message not found");
+
+    req.session.successMessage = "The whisper was removed by an admin.";
+    req.session.save((sessionError) => {
+      if (sessionError) return next(sessionError);
+      res.redirect("/");
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   getAllMessagesIndex,
   signUpFormGet,
@@ -109,5 +161,8 @@ module.exports = {
   logOut,
   loginFormGet,
   newMessageFormGet,
-  newMessageFormPost
+  newMessageFormPost,
+  joinClubFormGet,
+  joinClubFormPost,
+  deleteMessage
 }
